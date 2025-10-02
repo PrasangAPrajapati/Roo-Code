@@ -20,6 +20,16 @@ export class CodeIndexConfigManager {
 	private geminiOptions?: { apiKey: string }
 	private mistralOptions?: { apiKey: string }
 	private vercelAiGatewayOptions?: { apiKey: string }
+	private watsonxOptions?: {
+		watsonxApiKey?: string
+		watsonxProjectId?: string
+		watsonxBaseUrl?: string
+		watsonxPlatform?: string
+		watsonxAuthType?: string
+		watsonxUsername?: string
+		watsonxPassword?: string
+		watsonxRegion?: string
+	}
 	private qdrantUrl?: string = "http://localhost:6333"
 	private qdrantApiKey?: string
 	private searchMinScore?: number
@@ -72,6 +82,9 @@ export class CodeIndexConfigManager {
 		const mistralApiKey = this.contextProxy?.getSecret("codebaseIndexMistralApiKey") ?? ""
 		const vercelAiGatewayApiKey = this.contextProxy?.getSecret("codebaseIndexVercelAiGatewayApiKey") ?? ""
 
+		const watsonxApiKey = this.contextProxy?.getSecret("codebaseIndexWatsonxApiKey") ?? ""
+		const watsonxPassword = this.contextProxy?.getSecret("codebaseIndexWatsonxPassword") ?? ""
+
 		// Update instance variables with configuration
 		this.codebaseIndexEnabled = codebaseIndexEnabled ?? true
 		this.qdrantUrl = codebaseIndexQdrantUrl
@@ -108,6 +121,8 @@ export class CodeIndexConfigManager {
 			this.embedderProvider = "mistral"
 		} else if (codebaseIndexEmbedderProvider === "vercel-ai-gateway") {
 			this.embedderProvider = "vercel-ai-gateway"
+		} else if (codebaseIndexEmbedderProvider === "ibm-watsonx") {
+			this.embedderProvider = "ibm-watsonx"
 		} else {
 			this.embedderProvider = "openai"
 		}
@@ -129,6 +144,10 @@ export class CodeIndexConfigManager {
 		this.geminiOptions = geminiApiKey ? { apiKey: geminiApiKey } : undefined
 		this.mistralOptions = mistralApiKey ? { apiKey: mistralApiKey } : undefined
 		this.vercelAiGatewayOptions = vercelAiGatewayApiKey ? { apiKey: vercelAiGatewayApiKey } : undefined
+		this.watsonxOptions = {
+			watsonxApiKey: watsonxApiKey,
+			watsonxPassword: watsonxPassword,
+		}
 	}
 
 	/**
@@ -147,6 +166,16 @@ export class CodeIndexConfigManager {
 			geminiOptions?: { apiKey: string }
 			mistralOptions?: { apiKey: string }
 			vercelAiGatewayOptions?: { apiKey: string }
+			watsonxOptions?: {
+				watsonxApiKey?: string
+				watsonxProjectId?: string
+				watsonxBaseUrl?: string
+				watsonxPlatform?: string
+				watsonxAuthType?: string
+				watsonxUsername?: string
+				watsonxPassword?: string
+				watsonxRegion?: string
+			}
 			qdrantUrl?: string
 			qdrantApiKey?: string
 			searchMinScore?: number
@@ -167,6 +196,8 @@ export class CodeIndexConfigManager {
 			geminiApiKey: this.geminiOptions?.apiKey ?? "",
 			mistralApiKey: this.mistralOptions?.apiKey ?? "",
 			vercelAiGatewayApiKey: this.vercelAiGatewayOptions?.apiKey ?? "",
+			watsonxApiKey: this.watsonxOptions?.watsonxApiKey ?? "",
+			watsonxPassword: this.watsonxOptions?.watsonxPassword ?? "",
 			qdrantUrl: this.qdrantUrl ?? "",
 			qdrantApiKey: this.qdrantApiKey ?? "",
 		}
@@ -395,6 +426,7 @@ export class CodeIndexConfigManager {
 			geminiOptions: this.geminiOptions,
 			mistralOptions: this.mistralOptions,
 			vercelAiGatewayOptions: this.vercelAiGatewayOptions,
+			watsonxOptions: this.watsonxOptions,
 			qdrantUrl: this.qdrantUrl,
 			qdrantApiKey: this.qdrantApiKey,
 			searchMinScore: this.currentSearchMinScore,

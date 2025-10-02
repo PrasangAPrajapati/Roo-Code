@@ -71,6 +71,7 @@ export interface WebviewMessage {
 		| "requestLmStudioModels"
 		| "requestVsCodeLmModels"
 		| "requestHuggingFaceModels"
+		| "requestWatsonxEmbeddedModels"
 		| "openImage"
 		| "saveImage"
 		| "openFile"
@@ -288,6 +289,7 @@ export interface WebviewMessage {
 			| "gemini"
 			| "mistral"
 			| "vercel-ai-gateway"
+			| "ibm-watsonx"
 		codebaseIndexEmbedderBaseUrl?: string
 		codebaseIndexEmbedderModelId: string
 		codebaseIndexEmbedderModelDimension?: number // Generic dimension for all providers
@@ -302,6 +304,16 @@ export interface WebviewMessage {
 		codebaseIndexGeminiApiKey?: string
 		codebaseIndexMistralApiKey?: string
 		codebaseIndexVercelAiGatewayApiKey?: string
+
+		// ibm-watsonx settings
+		codebaseIndexWatsonxApiKey?: string
+		codebaseIndexWatsonxProjectId?: string
+		codebaseIndexWatsonxBaseUrl?: string
+		codebaseIndexWatsonxPlatform?: string
+		codebaseIndexWatsonxAuthType?: string
+		codebaseIndexWatsonxUsername?: string
+		codebaseIndexWatsonxPassword?: string
+		codebaseIndexWatsonxRegion?: string
 	}
 }
 

@@ -81,6 +81,7 @@ export interface ExtensionMessage {
 		| "lmStudioModels"
 		| "vsCodeLmModels"
 		| "huggingFaceModels"
+		| "watsonxEmbeddedModels"
 		| "vsCodeLmApiAvailable"
 		| "updatePrompt"
 		| "systemPrompt"
@@ -172,6 +173,7 @@ export interface ExtensionMessage {
 			}
 		}>
 	}>
+	watsonxEmbeddedModels?: Record<string, { dimension: number }>
 	mcpServers?: McpServer[]
 	commits?: GitCommit[]
 	listApiConfig?: ProviderSettingsEntry[]

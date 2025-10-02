@@ -18,6 +18,7 @@ import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { Package } from "../../shared/package"
 import { BATCH_SEGMENT_THRESHOLD } from "./constants"
+import { IbmWatsonxEmbedder } from "./embedders/ibm-watsonx"
 
 /**
  * Factory class responsible for creating and configuring code indexing service dependencies.
@@ -79,6 +80,21 @@ export class CodeIndexServiceFactory {
 				throw new Error(t("embeddings:serviceFactory.vercelAiGatewayConfigMissing"))
 			}
 			return new VercelAiGatewayEmbedder(config.vercelAiGatewayOptions.apiKey, config.modelId)
+		} else if (provider === "ibm-watsonx") {
+			if (!config.watsonxOptions?.watsonxApiKey) {
+				throw new Error(t("embeddings:serviceFactory.watsonxConfigMissing"))
+			}
+			return new IbmWatsonxEmbedder(
+				config.watsonxOptions.watsonxApiKey,
+				config.modelId,
+				config.watsonxOptions.watsonxProjectId,
+				config.watsonxOptions.watsonxPlatform,
+				config.watsonxOptions.watsonxBaseUrl,
+				config.watsonxOptions.watsonxRegion,
+				config.watsonxOptions.watsonxAuthType,
+				config.watsonxOptions.watsonxUsername,
+				config.watsonxOptions.watsonxPassword,
+			)
 		}
 
 		throw new Error(

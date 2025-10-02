@@ -1288,12 +1288,19 @@ describe("CodeIndexConfigManager", () => {
 			const config = configManager.getConfig()
 			expect(config).toEqual({
 				isConfigured: true,
+				mistralOptions: undefined,
+				modelDimension: undefined,
 				embedderProvider: "openai",
 				modelId: "text-embedding-3-large",
 				openAiOptions: { openAiNativeApiKey: "test-openai-key" },
 				ollamaOptions: { ollamaBaseUrl: undefined },
 				geminiOptions: undefined,
 				openAiCompatibleOptions: undefined,
+				vercelAiGatewayOptions: undefined,
+				watsonxOptions: {
+					watsonxApiKey: "",
+					watsonxPassword: "",
+				},
 				qdrantUrl: "http://qdrant.local",
 				qdrantApiKey: "test-qdrant-key",
 				searchMinScore: 0.4,

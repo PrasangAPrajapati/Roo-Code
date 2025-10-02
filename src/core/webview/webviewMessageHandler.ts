@@ -59,6 +59,7 @@ const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
 import { MarketplaceManager, MarketplaceItemType } from "../../services/marketplace"
 import { setPendingTodoList } from "../tools/updateTodoListTool"
+import { getEmbeddedWatsonxModels } from "../../api/providers/fetchers/ibm-watsonx"
 
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
@@ -948,6 +949,86 @@ export const webviewMessageHandler = async (
 			} catch (error) {
 				console.error("Failed to fetch Hugging Face models:", error)
 				provider.postMessageToWebview({ type: "huggingFaceModels", huggingFaceModels: [] })
+			}
+			break
+		case "requestWatsonxEmbeddedModels":
+			if (message?.values) {
+				try {
+					const { apiKey, projectId, platform, baseUrl, authType, username, password, region } =
+						message.values
+
+					if (platform === "ibmCloud") {
+						if (!apiKey || !region || !projectId) {
+							console.error(
+								"Missing IBM Cloud authentication credentials in IBM watsonx embedded provider for IBM watsonx models",
+							)
+							provider.postMessageToWebview({
+								type: "watsonxEmbeddedModels",
+								watsonxEmbeddedModels: {},
+							})
+							return
+						}
+					} else if (platform === "cloudPak") {
+						if (authType === "password") {
+							if (!baseUrl || !username || !password || !projectId) {
+								console.error(
+									"Missing IBM Cloud Pak for Data authentication credentials in IBM watsonx embedded provider for IBM watsonx models",
+								)
+								provider.postMessageToWebview({
+									type: "watsonxEmbeddedModels",
+									watsonxEmbeddedModels: {},
+								})
+								return
+							}
+						} else if (authType === "apiKey") {
+							if (!baseUrl || !apiKey || !username || !projectId) {
+								console.error(
+									"Missing IBM Cloud Pak for Data authentication credentials in IBM watsonx embedded provider for IBM watsonx models",
+								)
+								provider.postMessageToWebview({
+									type: "watsonxEmbeddedModels",
+									watsonxEmbeddedModels: {},
+								})
+								return
+							}
+						}
+					}
+
+					let effectiveBaseUrl = baseUrl
+					if (platform === "ibmCloud" && region && !baseUrl) {
+						const regionToUrl: Record<string, string> = {
+							"us-south": "https://us-south.ml.cloud.ibm.com",
+							"eu-de": "https://eu-de.ml.cloud.ibm.com",
+							"eu-gb": "https://eu-gb.ml.cloud.ibm.com",
+							"jp-tok": "https://jp-tok.ml.cloud.ibm.com",
+							"au-syd": "https://au-syd.ml.cloud.ibm.com",
+							"ca-tor": "https://ca-tor.ml.cloud.ibm.com",
+							"ap-south-1": "https://ap-south-1.aws.wxai.ibm.com",
+						}
+						effectiveBaseUrl = regionToUrl[region] || "https://us-south.ml.cloud.ibm.com"
+					}
+
+					const watsonxEmbeddedModels = await getEmbeddedWatsonxModels(
+						apiKey,
+						projectId,
+						effectiveBaseUrl,
+						platform,
+						authType,
+						username,
+						password,
+					)
+
+					provider.postMessageToWebview({
+						type: "watsonxEmbeddedModels",
+						watsonxEmbeddedModels: watsonxEmbeddedModels,
+					})
+				} catch (error) {
+					console.error("Failed to fetch IBM watsonx embedded models:", error)
+					provider.postMessageToWebview({
+						type: "watsonxEmbeddedModels",
+						watsonxEmbeddedModels: {},
+					})
+				}
 			}
 			break
 		case "openImage":
@@ -2494,6 +2575,63 @@ export const webviewMessageHandler = async (
 					)
 				}
 
+				if (settings.codebaseIndexWatsonxPlatform === "ibmCloud") {
+					if (settings.codebaseIndexWatsonxApiKey !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxApiKey",
+							settings.codebaseIndexWatsonxApiKey,
+						)
+					}
+					if (settings.codebaseIndexWatsonxRegion !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxRegion",
+							settings.codebaseIndexWatsonxRegion,
+						)
+					}
+					if (settings.codebaseIndexWatsonxProjectId !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxProjectId",
+							settings.codebaseIndexWatsonxProjectId,
+						)
+					}
+				} else if (settings.codebaseIndexWatsonxPlatform === "cloudPak") {
+					if (settings.codebaseIndexWatsonxBaseUrl !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxBaseUrl",
+							settings.codebaseIndexWatsonxBaseUrl,
+						)
+					}
+					if (settings.codebaseIndexWatsonxProjectId !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxProjectId",
+							settings.codebaseIndexWatsonxProjectId,
+						)
+					}
+					if (settings.codebaseIndexWatsonxUsername !== undefined) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxUsername",
+							settings.codebaseIndexWatsonxUsername,
+						)
+					}
+					if (
+						settings.codebaseIndexWatsonxAuthType === "apiKey" &&
+						settings.codebaseIndexWatsonxApiKey !== undefined
+					) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxApiKey",
+							settings.codebaseIndexWatsonxApiKey,
+						)
+					} else if (
+						settings.codebaseIndexWatsonxAuthType === "password" &&
+						settings.codebaseIndexWatsonxPassword !== undefined
+					) {
+						await provider.contextProxy.storeSecret(
+							"codebaseIndexWatsonxPassword",
+							settings.codebaseIndexWatsonxPassword,
+						)
+					}
+				}
+
 				// Send success response first - settings are saved regardless of validation
 				await provider.postMessageToWebview({
 					type: "codeIndexSettingsSaved",
@@ -2630,6 +2768,8 @@ export const webviewMessageHandler = async (
 			const hasVercelAiGatewayApiKey = !!(await provider.context.secrets.get(
 				"codebaseIndexVercelAiGatewayApiKey",
 			))
+			const hasWatsonxApiKey = !!(await provider.context.secrets.get("codebaseIndexWatsonxApiKey"))
+			const hasWatsonxPassword = !!(await provider.context.secrets.get("codebaseIndexWatsonxPassword"))
 
 			provider.postMessageToWebview({
 				type: "codeIndexSecretStatus",
@@ -2640,6 +2780,8 @@ export const webviewMessageHandler = async (
 					hasGeminiApiKey,
 					hasMistralApiKey,
 					hasVercelAiGatewayApiKey,
+					hasWatsonxApiKey,
+					hasWatsonxPassword,
 				},
 			})
 			break

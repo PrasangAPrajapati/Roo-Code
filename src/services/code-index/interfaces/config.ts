@@ -15,6 +15,16 @@ export interface CodeIndexConfig {
 	geminiOptions?: { apiKey: string }
 	mistralOptions?: { apiKey: string }
 	vercelAiGatewayOptions?: { apiKey: string }
+	watsonxOptions?: {
+		watsonxApiKey?: string
+		watsonxProjectId?: string
+		watsonxBaseUrl?: string
+		watsonxPlatform?: string
+		watsonxAuthType?: string
+		watsonxUsername?: string
+		watsonxPassword?: string
+		watsonxRegion?: string
+	}
 	qdrantUrl?: string
 	qdrantApiKey?: string
 	searchMinScore?: number
@@ -37,6 +47,8 @@ export type PreviousConfigSnapshot = {
 	geminiApiKey?: string
 	mistralApiKey?: string
 	vercelAiGatewayApiKey?: string
+	watsonxApiKey?: string
+	watsonxPassword?: string
 	qdrantUrl?: string
 	qdrantApiKey?: string
 }
